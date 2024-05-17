@@ -70,7 +70,7 @@ pub fn main() !void {
     } else try stdout.writeAll(help);
 }
 
-pub fn handleError(err: anyerror, output: std.io.AnyWriter, args: anytype) !void {
+fn handleError(err: anyerror, output: std.io.AnyWriter, args: anytype) !void {
     if (err == error.RequestFailed) {
         try output.print(
             \\Failed to fetch commits for repository "{s}"
