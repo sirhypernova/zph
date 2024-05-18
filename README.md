@@ -10,7 +10,7 @@ Run `zig build` to build zph. I recommend building zph in one of the release mod
 
 Once that is done, you will find the executable in `zig-out/bin/zph`. Executing it will display the help menu.
 
-If you would like to have zph available globally, you can add it to your `PATH` environment variable, or copy the executable to a location that is in your `PATH`.
+If you would like to have zph available globally, you can add the bin directory to your `PATH` environment variable, or copy the executable to a location that is in your `PATH`.
 
 ## Commands
 
