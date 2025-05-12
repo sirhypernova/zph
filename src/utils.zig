@@ -2,6 +2,8 @@ const std = @import("std");
 
 pub const api_url = "https://api.github.com/repos/{s}/commits?per_page=1";
 pub const archive_url = "https://github.com/{s}/archive/{s}.tar.gz";
+pub const tag_url = "https://github.com/{s}/archive/refs/tags/{s}.tar.gz";
+pub const latest_tag_url = "https://api.github.com/repos/{s}/releases/latest";
 
 pub fn getCommitsUrl(allocator: std.mem.Allocator, repo: []const u8) ![]const u8 {
     return std.fmt.allocPrint(allocator, api_url, .{repo});
@@ -9,6 +11,14 @@ pub fn getCommitsUrl(allocator: std.mem.Allocator, repo: []const u8) ![]const u8
 
 pub fn getArchiveUrl(allocator: std.mem.Allocator, repo: []const u8, commit: []const u8) ![]const u8 {
     return std.fmt.allocPrint(allocator, archive_url, .{ repo, commit });
+}
+
+pub fn getTagUrl(allocator: std.mem.Allocator, repo: []const u8, tag: []const u8) ![]const u8 {
+    return std.fmt.allocPrint(allocator, tag_url, .{ repo, tag });
+}
+
+pub fn getLatestTagUrl(allocator: std.mem.Allocator, repo: []const u8) ![]const u8 {
+    return std.fmt.allocPrint(allocator, latest_tag_url, .{repo});
 }
 
 pub fn makeRequest(allocator: std.mem.Allocator, url: []const u8) ![]const u8 {
