@@ -12,7 +12,7 @@ const help =
     \\  version - Display the version of zph
     \\  fetch <user>/<repo> - Fetch the latest commits from a repository, and print the archive URL
     \\  save <user>/<repo> - Pass the archive URL to the package manager to save the package
-;
+    ;
 
 const Command = enum {
     help,
@@ -38,27 +38,22 @@ pub fn main() !void {
             switch (command) {
                 .help => try stdout.writeAll(help),
                 .version => try stdout.print("zph v{s}\n", .{pkg.version}),
-                .fetch => {
+                .fetch, .save => {
                     if (args.next()) |repo| {
                         const archive_url = fetchArchiveUrl(arena, repo) catch |err|
                             return handleError(err, stderr.any(), .{repo});
-                        try stdout.writeAll(archive_url);
-                    } else {
-                        try stdout.print("Missing repository argument\n{s}", .{help});
-                    }
-                },
-                .save => {
-                    if (args.next()) |repo| {
-                        const archive_url = fetchArchiveUrl(arena, repo) catch |err|
-                            return handleError(err, stderr.any(), .{repo});
-                        try stdout.writeAll("Saving repository..\n");
-                        const res = try std.process.Child.run(.{
-                            .allocator = arena,
-                            .argv = &[_][]const u8{ "zig", "fetch", "--save", archive_url },
-                        });
-                        if (res.stderr.len > 0) try stderr.writeAll(res.stderr);
-                        if (res.stdout.len > 0) try stdout.writeAll(res.stdout);
-                        try stdout.writeAll("Package saved.");
+                        if (command == .fetch) {
+                            try stdout.writeAll(archive_url);
+                        } else {
+                            try stdout.writeAll("Saving repository..\n");
+                            const res = try std.process.Child.run(.{
+                                .allocator = arena,
+                                .argv = &[_][]const u8{ "zig", "fetch", "--save", archive_url },
+                            });
+                            if (res.stderr.len > 0) try stderr.writeAll(res.stderr);
+                            if (res.stdout.len > 0) try stdout.writeAll(res.stdout);
+                            try stdout.writeAll("Package saved.");
+                        }
                     } else {
                         try stdout.print("Missing repository argument\n{s}", .{help});
                     }
@@ -74,7 +69,7 @@ fn handleError(err: anyerror, output: std.io.AnyWriter, args: anytype) !void {
     if (err == error.RequestFailed) {
         try output.print(
             \\Failed to fetch commits for repository "{s}"
-            \\Please check the repository name and try again,
+            \\Please check the repository name and try again.
         , args);
     } else {
         try output.print("An error occurred: {any}\n", .{err});
