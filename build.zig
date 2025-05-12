@@ -2,6 +2,7 @@ const std = @import("std");
 const Ast = std.zig.Ast;
 
 const configFile = @embedFile("./build.zig.zon");
+var allocator = std.heap.smp_allocator;
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
@@ -24,31 +25,13 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    const version: []const u8 = blk: {
-        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-        const allocator = gpa.allocator();
-        defer _ = gpa.deinit();
-        var ast = Ast.parse(allocator, configFile, .zon) catch unreachable;
-        defer ast.deinit(allocator);
-
-        const node_datas = ast.nodes.items(.data);
-        const main_index = node_datas[0].lhs;
-
-        var buf: [2]Ast.Node.Index = undefined;
-        const struct_init = ast.fullStructInit(&buf, main_index) orelse unreachable;
-
-        for (struct_init.ast.fields) |field_init| {
-            const name_token = ast.firstToken(field_init) - 2;
-            const field_name = try identifierTokenString(ast, name_token);
-            if (std.mem.eql(u8, field_name, "version")) {
-                break :blk try parseString(ast, field_init);
-            }
-        }
-        break :blk "0.0.0";
-    };
+    const buildZon = std.zon.parse.fromSlice(struct {
+        version: []const u8,
+    }, allocator, configFile, null, .{ .ignore_unknown_fields = true }) catch unreachable;
+    defer allocator.free(buildZon.version);
 
     const ops = b.addOptions();
-    ops.addOption([]const u8, "version", version[1 .. version.len - 1]);
+    ops.addOption([]const u8, "version", buildZon.version);
     const pkgMod = ops.createModule();
     exe.root_module.addImport("pkg", pkgMod);
     // This declares intent for the executable to be installed into the
@@ -103,22 +86,4 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_lib_unit_tests.step);
     test_step.dependOn(&run_exe_unit_tests.step);
-}
-
-fn identifierTokenString(ast: Ast, token: Ast.TokenIndex) ![]const u8 {
-    const token_tags = ast.tokens.items(.tag);
-    std.debug.assert(token_tags[token] == .identifier);
-    const ident_name = ast.tokenSlice(token);
-    return ident_name;
-}
-
-fn parseString(ast: Ast, node: Ast.Node.Index) ![]const u8 {
-    const node_tags = ast.nodes.items(.tag);
-    const main_tokens = ast.nodes.items(.main_token);
-    if (node_tags[node] != .string_literal) {
-        @panic("expected string literal");
-    }
-    const str_lit_token = main_tokens[node];
-    const token_bytes = ast.tokenSlice(str_lit_token);
-    return token_bytes;
 }
