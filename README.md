@@ -18,9 +18,9 @@ If you would like to have zph available globally, you can add the bin directory 
 
 - `zph version` - Display the version of zph
 
-- `zph fetch <user>/<repo>` - Fetch the latest commits from a repository, and print the archive URL
+- `zph fetch <user>/<repo>[@<tag>|latest]` - Fetch a tag or the latest commits from a repository, and print the archive URL
 
-- `zph save <user>/<repo>` - Pass the archive URL to the package manager to save the package
+- `zph save <user>/<repo>[@<tag>|latest]` - Pass the archive URL to the package manager to save the package
   - Internally, zph will use the `zig fetch` command to save the package. Note that you must be in the same directory as the `builg.zig.zon` file for this to work.
 
 ## License

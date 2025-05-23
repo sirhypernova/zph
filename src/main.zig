@@ -11,7 +11,7 @@ const help =
     \\  help - Display this help message
     \\  version - Display the version of zph
     \\  fetch <user>/<repo>[@<tag>|latest] - Fetch a tag or the latest commits from a repository, and print the archive URL
-    \\  save <user>/<repo>[@<tag>] - Pass the archive URL to the package manager to save the package
+    \\  save <user>/<repo>[@<tag>|latest] - Pass the archive URL to the package manager to save the package
     ;
 
 const Command = enum {
